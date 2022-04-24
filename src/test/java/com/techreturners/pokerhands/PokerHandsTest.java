@@ -20,4 +20,17 @@ public class PokerHandsTest {
         //Assert
         Assertions.assertEquals(" ", actualScore);
     }
+
+    @Test
+    public void testFirstInput(){
+        //Arrange
+        App pokerApp = new App();
+        inputStr = "Black: 2H 3D 5S 9C KD  White: 2C 3H 4S 8C AH";
+
+        //Act
+        actualScore = pokerApp.comparePokerHands(inputStr);
+
+        //Assert
+        Assertions.assertEquals(" ", actualScore);
+    }
 }
