@@ -1,6 +1,7 @@
 package com.techreturners.pokerhands;
 
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
 
@@ -10,6 +11,7 @@ public class PokerHandsTest {
     public String actualScore = " ";
 
     @Test
+    @Disabled
     public void testEmptyOutput(){
         //Arrange
         App pokerApp = new App();
@@ -25,7 +27,7 @@ public class PokerHandsTest {
     public void testFirstInput(){
         //Arrange
         App pokerApp = new App();
-        inputStr = "Black: 2H 3D 5S 9C KD  White: 2C 3H 4S 8C AH";
+        inputStr = "Black: 2H 3D 5S 9C KD  White: 2C 3H 4S 8C KH";
 
         //Act
         actualScore = pokerApp.comparePokerHands(inputStr);
