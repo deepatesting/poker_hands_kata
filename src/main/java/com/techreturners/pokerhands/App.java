@@ -1,7 +1,8 @@
 package com.techreturners.pokerhands;
 
 import java.util.*;
-import java.util.stream.Stream;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class App {
 
@@ -12,8 +13,10 @@ public class App {
     ArrayList<String> player2 = new ArrayList<String>();
     LinkedHashMap<String, Integer> deck_map = new LinkedHashMap<String, Integer>();
     LinkedHashMap<String, String> name_map = new LinkedHashMap<String, String>();
-    private String[] deckSuit = {"C", "D", "H", "S"};
-
+    private String[] handOrder = {"high card", "pair", "two pairs", "three of a kind",
+                                    "straight", "flush", "full house", "four of a kind", "straight flush" };
+    int player1Rank = 0;
+    int player2Rank = 0;
 
     public App(){
         deck_map.put("2", 2);
@@ -38,6 +41,9 @@ public class App {
 
     public String comparePokerHands(String inputStr){
 
+        if((inputStr == null) || (inputStr == " "))
+            return " ";
+
         splitStrings = inputStr.trim().split("\\s*:|\\s", 15);
 
         for(int i = 0; i < splitStrings.length; i++) {
@@ -58,118 +64,186 @@ public class App {
 
 
         //Call playHands function by passing parsed array list
-        playHands(player1, player2);
+        return playHands(player1, player2);
 
-        //playHandsFlush(player1, player2);
-
-        return " ";
     }
 
-    public void playHandsFlush(ArrayList<String> player1, ArrayList<String> player2){
-        String Player1MAX = "";
-        String Player2MAX = "";
-        String winnerName = "";
-        String cardName = "";
 
-        Collections.sort(player1);
-        Collections.sort(player2);
+    public int playPokerHandForAPlayer(ArrayList<String> player) {
 
-        long count = player1.stream().distinct().count();
-        long count1 = player2.stream().distinct().count();
+        int pairCount = 0;
+        int threeOfAKind = 0;
+        int fourOfAKind = 0;
+        int rank = 0;
+        boolean consecutiveOrder = true;
 
-        String s = player2.get(0);
+        //Check if cards are consecutive in order before sorting
+        List<String> stringWithoutSorting = player.stream()
+                .map(x -> x.substring(0,1))
+                .collect(Collectors.toList());
 
-        boolean answer = player2.stream().allMatch(str -> str.substring(0,1) == s);
-        System.out.println(answer);
-    }
-    public void playHands(ArrayList<String> player1, ArrayList<String> player2) {
+        //Sort the cards in increasing order
+        Collections.sort(player);
 
-        String Player1MAX = "";
-        String Player2MAX = "";
-        String winnerName = "";
-        String cardName = "";
+        //Find the count of cards
+        long countOfCards = player.stream().distinct().count();
 
-        Collections.sort(player1);
-        Collections.sort(player2);
+        //Get first card
+        String getFirstCard = player.get(0);
 
-        long count = player1.stream().distinct().count();
-        long count1 = player2.stream().distinct().count();
-
-        System.out.println(count);
-        System.out.println(count1);
-
-        if(count == player1.size())
-            Player1MAX = player1.get(player1.size()-1);
-
-        if(count1 == player2.size())
-            Player2MAX = player2.get(player1.size()-1);
-
-
-        //Get the next highest if first high is equal
-        if(Player1MAX.charAt(0) == Player2MAX.charAt(0)) {
-            //Get the next highest
-            Player1MAX = player1.get(player1.size()-2);
-            Player2MAX = player2.get(player2.size()-2);
-            System.out.println(Player1MAX);
+        //Check if all 5 cards are in the same suit
+        boolean sameSuit = player.stream().allMatch(str -> str.charAt(1) == getFirstCard.charAt(1));
+        if(sameSuit) {
+            rank = 6;
         }
 
-        String firstCharPlay1 = Player1MAX.substring(0,1);
-        String firstCharPlay2 = Player2MAX.substring(0,1);
+        //Sorting player cards based on first char e.g [2,3,4,5,6]
+        List<String> sortedString = player.stream()
+                .map(x -> x.substring(0,1))
+                .sorted()
+                .collect(Collectors.toList());
 
-        int high1 =  deck_map.get(firstCharPlay1);
-        int high2 = deck_map.get(firstCharPlay2);
+        //Map to count number of same deck
+        Map<String, Long>  result = sortedString.stream()
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
 
-        if (high1 > high2) {
-            if (name_map.containsKey(firstCharPlay1))
-                cardName = name_map.get(firstCharPlay1);
-            else
-                cardName = firstCharPlay1;
-            winnerName = player1Name;
-        } else {
-            if (name_map.containsKey(firstCharPlay2))
-                cardName = name_map.get(firstCharPlay2);
-            else
-                cardName = firstCharPlay2;
-            winnerName = player2Name;
-        }
-
-        System.out.println(winnerName + " wins. - with high card: " + cardName);
-
-        /*
-        Player1MAX = player1.stream()
-                .max(Comparator.naturalOrder())
-                .map(Object::toString)
-                .orElse(null);
-
-        Player2MAX = player2.stream()
-                .max(Comparator.naturalOrder())
-                .map(Object::toString)
-                .orElse(null);
-
-        if (Player1MAX.isPresent())
-            System.out.println(Player1MAX.get());
-
-        Optional<String> Player2MAX = player2.stream().max(Comparator.naturalOrder());
-
-        if (Player2MAX.isPresent())
-            System.out.println(Player2MAX.get());
-
-        //String MAX = player1.stream().max(Comparator.comparing(String::valueOf)).get();
-
-        for (int i = 0; i < player1.size(); i++) {
-            if(player1.get(i).substring(1).equals("D") ) {
-                countD = countD + 1;
-                pairD.add(player1.get(i));
-                System.out.println(pairD);
+        //Loop through to find pair counts
+        for (long value : result.values()) {
+            if (value == 2) {
+                pairCount = pairCount + 1;
+            }
+            if (value == 3) {
+                threeOfAKind =  1;
+            }
+            if (value == 4) {
+                fourOfAKind =  1;
             }
         }
 
-        for (int i = 0; i < player2.size(); i++) {
-            System.out.println(player2.get(i));
-        }
-*/
+        //Find sum of map values pair count
+        long sum = result.values().stream().mapToLong(Long::valueOf).sum();
 
+        //Find if cards are in consecutive order
+        for (int i = 0; i < stringWithoutSorting.size()-1; i++) {
+            if (deck_map.get(stringWithoutSorting.get(i)) != deck_map.get(stringWithoutSorting.get(i+1)) - 1 )  {
+                consecutiveOrder =  false;
+            }
+        }
+
+
+        //Based on pair count and original count find rank
+        if (sum == countOfCards) {
+            if ((consecutiveOrder) && (sameSuit)) {
+                    rank = 9;
+            }
+            else if (consecutiveOrder) {
+                rank = 5;
+            } else if (sameSuit) {
+                rank = 6;
+            }else if (pairCount == 1 ) {
+                if(threeOfAKind == 1)
+                    rank = 7;
+                else
+                    rank = 2;
+            }
+            else if(pairCount == 2)
+                rank = 3;
+            else if(threeOfAKind == 1)
+                rank = 4;
+            else if(fourOfAKind == 1)
+                rank = 8;
+            else
+                rank = 1;
+        }
+
+        return rank;
 
     }
 
+    public String playHands(ArrayList<String> player1, ArrayList<String> player2) {
+
+        String Player1MAX = "";
+        String Player2MAX = "";
+        String winnerName = "";
+        String cardNamePlayer1 = "";
+        String cardNamePlayer2 = "";
+        String cardName = "";
+        String msg = "";
+
+        String firstCharPlay1 = "";
+        String firstCharPlay2 = "";
+
+        int highValueForPlayer1;
+        int highValueForPlayer2;
+
+
+        //Get the highest card from both players
+        Player1MAX = player1.get(player1.size() - 1);
+        Player2MAX = player2.get(player1.size() - 1);
+
+
+        //Get the next highest if first high is equal
+        if (Player1MAX.charAt(0) == Player2MAX.charAt(0)) {
+            //Get the next highest
+            Player1MAX = player1.get(player1.size() - 2);
+            Player2MAX = player2.get(player2.size() - 2);
+        }
+
+        //Get first character of max card as string
+        firstCharPlay1 = Player1MAX.substring(0, 1);
+        firstCharPlay2 = Player2MAX.substring(0, 1);
+
+
+        //now get value of max card as integer
+        highValueForPlayer1 = deck_map.get(firstCharPlay1);
+        highValueForPlayer2 = deck_map.get(firstCharPlay2);
+
+
+        if (name_map.containsKey(firstCharPlay1))
+            cardNamePlayer1 = name_map.get(firstCharPlay1);
+        else
+            cardNamePlayer1 = firstCharPlay1;
+
+        if (name_map.containsKey(firstCharPlay2))
+            cardNamePlayer2 = name_map.get(firstCharPlay2);
+        else
+            cardNamePlayer2 = firstCharPlay2;
+
+
+        //Call playPokerHand  for each player to find the rank
+        player1Rank = playPokerHandForAPlayer(player1);
+        player2Rank = playPokerHandForAPlayer(player2);
+
+        if(player1Rank > player2Rank) {
+            winnerName = player1Name;
+            msg = handOrder[player1Rank-1];
+            cardName = cardNamePlayer1;
+        } else if (player1Rank <  player2Rank) {
+            winnerName = player2Name;
+            msg = handOrder[player2Rank-1];
+            cardName = cardNamePlayer2;
+        } else if (player1Rank ==  player2Rank) {
+            msg = handOrder[0];
+
+            if (highValueForPlayer1 > highValueForPlayer2) {
+                cardName = cardNamePlayer1;
+                winnerName = player1Name;
+            } else if (highValueForPlayer1 < highValueForPlayer2) {
+                cardName = cardNamePlayer2;
+                winnerName = player2Name;
+            } else {
+                winnerName = null;
+            }
+        }
+
+        if (winnerName != null) {
+            System.out.println(winnerName + " wins. - with " + msg + ": " + cardName);
+            return winnerName + " wins. - with " + msg + ": " + cardName;
+        }else{
+            System.out.println("Tie.");
+            return "Tie.";
+        }
+    }
+
 }
+
